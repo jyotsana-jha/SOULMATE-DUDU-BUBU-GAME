@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bear Mood Match 🐻🐼</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --pink:#ffb3c6;--pink2:#ff85a1;--pink3:#ff4d79;
+  --brown:#c8845a;--brown2:#a0633a;--brown-light:#f5e6dc;
+  --cream:#fff5f0;--cream2:#ffeee6;
+  --panda:#f0ede8;--panda2:#2a2a2a;
+  --gold:#ffc93c;--heart:#ff4d79;
+  --green:#b5ead7;--blue:#b5d5ff;
+  --text:#3a2a20;--muted:#b09080;
+  --r:20px;--shadow:0 8px 32px rgba(180,100,80,.13);
+}
+body{font-family:'Nunito',sans-serif;background:var(--cream);min-height:100vh;color:var(--text);overflow-x:hidden}
+
+/* ── sparkles bg ── */
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(circle at 15% 20%,#ffe0ea55 0%,transparent 40%),
+  radial-gradient(circle at 85% 80%,#ffd6c255 0%,transparent 40%),
+  radial-gradient(circle at 50% 50%,#fff0f555 0%,transparent 60%);
+  pointer-events:none;z-index:0}
+
+.app{position:relative;z-index:1;max-width:460px;margin:0 auto;padding:1.2rem 1rem 5rem}
+
+/* screens */
+.screen{display:none;animation:popIn .42s cubic-bezier(.34,1.56,.64,1) both}
+.screen.active{display:block}
+@keyframes popIn{from{opacity:0;transform:scale(.9) translateY(14px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
+/* ────────────────────────────
+   BEAR SVG COMPONENTS
+──────────────────────────── */
+.bear-wrap{display:inline-flex;flex-direction:column;align-items:center;gap:4px}
+.bear-name{font-size:.72rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase}
+.bubu-name{color:var(--brown)}
+.dudu-name{color:#555}
+
+/* ── TITLE ── */
+.title-screen{text-align:center;padding-top:.5rem}
+.title-bears{display:flex;justify-content:center;align-items:flex-end;gap:16px;margin-bottom:1.2rem}
+.title-bear{animation:bearBob 2.4s ease-in-out infinite}
+.title-bear.b{animation-delay:.3s}
+
+@keyframes bearBob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-10px) rotate(2deg)}}
+
+h1.game-title{font-family:'Baloo 2',cursive;font-size:2.3rem;font-weight:800;color:var(--text);line-height:1}
+h1.game-title span{color:var(--pink3)}
+.tagline{font-size:.9rem;color:var(--muted);font-weight:700;margin:.4rem 0 1.4rem;line-height:1.5}
+
+.how-box{background:white;border-radius:var(--r);padding:1.1rem 1.3rem;margin-bottom:1.4rem;border:2px solid var(--cream2);text-align:left}
+.how-box h3{font-size:.7rem;font-weight:900;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:.7rem}
+.step{display:flex;align-items:flex-start;gap:9px;margin-bottom:7px;font-size:.84rem;font-weight:700;line-height:1.4}
+.step-num{min-width:20px;height:20px;background:var(--brown-light);color:var(--brown2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:900;flex-shrink:0}
+
+.btn-play{width:100%;padding:15px;background:var(--pink3);color:white;border:none;border-radius:16px;font-family:'Baloo 2',cursive;font-size:1.2rem;font-weight:800;cursor:pointer;transition:all .18s;box-shadow:0 5px 20px #ff4d7940}
+.btn-play:hover{transform:translateY(-2px);box-shadow:0 7px 24px #ff4d7960}
+.btn-play:active{transform:scale(.98)}
+
+/* ── TOP BAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.hearts-strip{display:flex;gap:3px;flex-wrap:wrap}
+.h-icon{font-size:1.1rem;transition:transform .3s}
+.h-icon.lit{animation:hpop .35s cubic-bezier(.34,1.56,.64,1)}
+@keyframes hpop{from{transform:scale(0)}60%{transform:scale(1.5)}to{transform:scale(1)}}
+.rpill{background:white;border:1.5px solid #f0e0d5;border-radius:30px;padding:4px 13px;font-size:.75rem;font-weight:800;color:var(--muted)}
+
+/* ── SCENE CARD ── */
+.scene-card{background:white;border-radius:26px;padding:1.3rem 1.2rem;margin-bottom:1rem;border:2px solid var(--cream2);box-shadow:var(--shadow);text-align:center}
+.scene-emo{font-size:3rem;margin-bottom:.4rem;display:block;filter:drop-shadow(0 3px 8px rgba(0,0,0,.12))}
+.scene-lbl{font-size:.65rem;font-weight:900;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:.35rem}
+.scene-txt{font-family:'Baloo 2',cursive;font-size:1.05rem;font-weight:600;line-height:1.5;color:var(--text)}
+
+/* ── PLAYER PANELS ── */
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+.panel{background:white;border-radius:var(--r);padding:.9rem .8rem;border:2px solid var(--cream2)}
+.panel-top{display:flex;flex-direction:column;align-items:center;margin-bottom:.7rem;gap:4px}
+.panel-lbl{font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+
+.moods{display:flex;flex-direction:column;gap:6px}
+.mbtn{width:100%;padding:8px 7px;border-radius:11px;border:2px solid #f0e0d5;background:var(--cream);font-family:'Nunito',sans-serif;font-size:.77rem;font-weight:700;cursor:pointer;transition:all .16s;display:flex;align-items:center;gap:5px;justify-content:center;color:var(--text)}
+.mbtn:hover{border-color:var(--pink2);background:#fff0f5;transform:scale(1.03)}
+.mbtn.sel-b{border-color:var(--brown);background:var(--brown-light);color:var(--brown2);transform:scale(1.04)}
+.mbtn.sel-d{border-color:#777;background:#eeeeee;color:#333;transform:scale(1.04)}
+.mbtn .me{font-size:.95rem}
+.done-check{min-height:24px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin-top:4px}
+
+.btn-reveal{width:100%;padding:14px;background:linear-gradient(135deg,var(--brown) 0%,var(--pink2) 100%);color:white;border:none;border-radius:16px;font-family:'Baloo 2',cursive;font-size:1.1rem;font-weight:800;cursor:pointer;transition:all .2s;opacity:.35;pointer-events:none;box-shadow:0 4px 16px #c8845a30}
+.btn-reveal.rdy{opacity:1;pointer-events:all;animation:glow 1.6s ease-in-out infinite}
+.btn-reveal.rdy:hover{transform:translateY(-2px)}
+@keyframes glow{0%,100%{box-shadow:0 4px 16px #c8845a30}50%{box-shadow:0 4px 28px #ff85a155}}
+
+/* ── REVEAL ── */
+.mini-scene{background:white;border-radius:14px;padding:.8rem 1rem;border:1.5px solid var(--cream2);margin-bottom:.9rem;text-align:center;font-size:.84rem;font-weight:700;color:var(--muted);line-height:1.4}
+.result-banner{border-radius:22px;padding:1.5rem 1.2rem;text-align:center;margin-bottom:.9rem;border:2px solid transparent}
+.result-banner.match{background:linear-gradient(135deg,#fff0f7,#fff8ec);border-color:#ffd6e7}
+.result-banner.nomatch{background:linear-gradient(135deg,#f8f8f8,#fafafa);border-color:#eee}
+.r-icon{font-size:3.2rem;display:block;margin-bottom:.4rem;animation:rpop .45s cubic-bezier(.34,1.56,.64,1) .08s both}
+@keyframes rpop{from{transform:scale(0) rotate(-12deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.r-title{font-family:'Baloo 2',cursive;font-size:1.5rem;font-weight:800;margin-bottom:3px}
+.match .r-title{color:var(--heart)}
+.nomatch .r-title{color:#999}
+.r-sub{font-size:.84rem;font-weight:700;color:var(--muted);margin-bottom:1rem}
+.picks{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pick{border-radius:12px;padding:9px 8px;text-align:center}
+.pick.bp{background:var(--brown-light)}
+.pick.dp{background:#ebebeb}
+.pick-who{font-size:.65rem;font-weight:900;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:3px}
+.pick-val{font-size:.88rem;font-weight:800}
+.pick.bp .pick-val{color:var(--brown2)}
+.pick.dp .pick-val{color:#444}
+.score-box{display:flex;justify-content:center;gap:28px;background:white;border-radius:16px;padding:.9rem;border:2px solid var(--cream2);margin-bottom:.9rem}
+.sc-item{text-align:center}
+.sc-num{font-family:'Baloo 2',cursive;font-size:2rem;font-weight:800;color:var(--heart);line-height:1}
+.sc-lbl{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.btn-next{width:100%;padding:14px;background:var(--text);color:white;border:none;border-radius:16px;font-family:'Baloo 2',cursive;font-size:1.05rem;font-weight:800;cursor:pointer;transition:all .18s}
+.btn-next:hover{background:#5a3a28;transform:translateY(-1px)}
+
+/* ── FINAL ── */
+.final{text-align:center;padding-top:.5rem}
+.final-duo{display:flex;justify-content:center;align-items:flex-end;gap:12px;margin-bottom:1rem}
+.final-bear{animation:bearBob 2s ease-in-out infinite}
+.final-bear.b{animation-delay:.3s}
+.f-title{font-family:'Baloo 2',cursive;font-size:2rem;font-weight:800;margin-bottom:.3rem}
+.f-hearts{font-size:1.6rem;letter-spacing:3px;margin-bottom:.3rem}
+.f-score{font-family:'Baloo 2',cursive;font-size:3.5rem;font-weight:800;color:var(--heart);line-height:1}
+.f-of{font-size:.82rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:1.2rem}
+.f-msg{background:white;border-radius:var(--r);padding:1.1rem 1.3rem;border:2px solid var(--cream2);margin-bottom:1.4rem}
+.f-msg-txt{font-family:'Baloo 2',cursive;font-size:1rem;font-weight:600;line-height:1.55;color:var(--text)}
+.btn-replay{width:100%;padding:15px;background:var(--pink3);color:white;border:none;border-radius:16px;font-family:'Baloo 2',cursive;font-size:1.15rem;font-weight:800;cursor:pointer;transition:all .18s;box-shadow:0 5px 20px #ff4d7940}
+.btn-replay:hover{transform:translateY(-2px)}
+
+/* confetti */
+.cw{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;overflow:hidden}
+.cp{position:absolute;animation:cfall 1.3s ease-in both}
+@keyframes cfall{from{transform:translateY(-20px) rotate(0);opacity:1}to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+
+@media(max-width:380px){
+  h1.game-title{font-size:1.9rem}
+  .mbtn{font-size:.7rem;padding:7px 5px}
+  .scene-txt{font-size:.95rem}
+}
+</style>
+</head>
+<body>
+<div class="cw" id="cw"></div>
+<div class="app">
+
+<!-- ══ TITLE ══ -->
+<div class="screen active" id="sTitle">
+  <div class="title-screen">
+    <div class="title-bears">
+      <div class="bear-wrap title-bear">
+        <!-- BUBU - brown bear -->
+        <svg width="90" height="100" viewBox="0 0 90 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- ears -->
+          <circle cx="22" cy="22" r="14" fill="#c8845a"/>
+          <circle cx="68" cy="22" r="14" fill="#c8845a"/>
+          <circle cx="22" cy="22" r="8" fill="#e8a07a"/>
+          <circle cx="68" cy="22" r="8" fill="#e8a07a"/>
+          <!-- body -->
+          <ellipse cx="45" cy="72" rx="30" ry="26" fill="#c8845a"/>
+          <!-- head -->
+          <circle cx="45" cy="45" r="32" fill="#c8845a"/>
+          <!-- face base -->
+          <ellipse cx="45" cy="51" rx="18" ry="13" fill="#e8a07a"/>
+          <!-- cheeks -->
+          <circle cx="28" cy="50" r="7" fill="#ff9999" opacity=".5"/>
+          <circle cx="62" cy="50" r="7" fill="#ff9999" opacity=".5"/>
+          <!-- eyes -->
+          <circle cx="36" cy="41" r="5" fill="#2a1a0a"/>
+          <circle cx="54" cy="41" r="5" fill="#2a1a0a"/>
+          <circle cx="37.5" cy="39.5" r="1.8" fill="white"/>
+          <circle cx="55.5" cy="39.5" r="1.8" fill="white"/>
+          <!-- nose -->
+          <ellipse cx="45" cy="49" rx="4" ry="3" fill="#2a1a0a"/>
+          <!-- tongue -->
+          <path d="M41 54 Q45 59 49 54" stroke="#2a1a0a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <ellipse cx="45" cy="55.5" rx="3" ry="2.5" fill="#ff8fa3" opacity=".8"/>
+          <!-- tummy -->
+          <ellipse cx="45" cy="76" rx="16" ry="13" fill="#e8a07a"/>
+          <!-- arms -->
+          <ellipse cx="15" cy="72" rx="10" ry="16" fill="#c8845a" transform="rotate(15 15 72)"/>
+          <ellipse cx="75" cy="72" rx="10" ry="16" fill="#c8845a" transform="rotate(-15 75 72)"/>
+          <!-- legs -->
+          <ellipse cx="33" cy="94" rx="11" ry="8" fill="#c8845a"/>
+          <ellipse cx="57" cy="94" rx="11" ry="8" fill="#c8845a"/>
+          <!-- blush dots -->
+          <circle cx="26" cy="51" r="2" fill="#ff7070" opacity=".3"/>
+          <circle cx="64" cy="51" r="2" fill="#ff7070" opacity=".3"/>
+        </svg>
+        <span class="bear-name bubu-name">Bubu</span>
+      </div>
+
+      <div style="font-size:1.8rem;margin-bottom:28px;animation:heartFloat 1.8s ease-in-out infinite">💗</div>
+
+      <div class="bear-wrap title-bear b">
+        <!-- DUDU - panda -->
+        <svg width="90" height="100" viewBox="0 0 90 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- ears -->
+          <circle cx="22" cy="20" r="15" fill="#2a2a2a"/>
+          <circle cx="68" cy="20" r="15" fill="#2a2a2a"/>
+          <!-- body -->
+          <ellipse cx="45" cy="73" rx="30" ry="25" fill="#f0ede8"/>
+          <!-- head -->
+          <circle cx="45" cy="45" r="32" fill="#f0ede8"/>
+          <!-- eye patches -->
+          <ellipse cx="33" cy="41" rx="10" ry="9" fill="#2a2a2a"/>
+          <ellipse cx="57" cy="41" rx="10" ry="9" fill="#2a2a2a"/>
+          <!-- face muzzle -->
+          <ellipse cx="45" cy="52" rx="17" ry="12" fill="#e8e4de"/>
+          <!-- cheeks -->
+          <circle cx="27" cy="51" r="7" fill="#ffb3c6" opacity=".6"/>
+          <circle cx="63" cy="51" r="7" fill="#ffb3c6" opacity=".6"/>
+          <!-- eyes -->
+          <circle cx="33" cy="41" r="5.5" fill="white"/>
+          <circle cx="57" cy="41" r="5.5" fill="white"/>
+          <circle cx="33" cy="42" r="3.5" fill="#1a1a1a"/>
+          <circle cx="57" cy="42" r="3.5" fill="#1a1a1a"/>
+          <circle cx="34" cy="40.5" r="1.5" fill="white"/>
+          <circle cx="58" cy="40.5" r="1.5" fill="white"/>
+          <!-- nose -->
+          <ellipse cx="45" cy="50" rx="4" ry="3" fill="#2a2a2a"/>
+          <!-- tongue -->
+          <path d="M41 55 Q45 60 49 55" stroke="#2a2a2a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <ellipse cx="45" cy="56.5" rx="3" ry="2.5" fill="#ff8fa3" opacity=".8"/>
+          <!-- bow tie -->
+          <path d="M37 65 L45 70 L53 65 L45 60 Z" fill="#2a2a2a"/>
+          <circle cx="45" cy="65" r="2.5" fill="#2a2a2a"/>
+          <!-- tummy spot -->
+          <ellipse cx="45" cy="76" rx="15" ry="12" fill="#e0ddd8"/>
+          <!-- arms -->
+          <ellipse cx="14" cy="72" rx="10" ry="15" fill="#2a2a2a" transform="rotate(15 14 72)"/>
+          <ellipse cx="76" cy="72" rx="10" ry="15" fill="#2a2a2a" transform="rotate(-15 76 72)"/>
+          <!-- legs -->
+          <ellipse cx="33" cy="94" rx="12" ry="8" fill="#2a2a2a"/>
+          <ellipse cx="57" cy="94" rx="12" ry="8" fill="#2a2a2a"/>
+        </svg>
+        <span class="bear-name dudu-name">Dudu</span>
+      </div>
+    </div>
+
+    <h1 class="game-title">Bear Mood<br><span>Match</span></h1>
+    <p class="tagline">Can you read each other's mind?<br>Pick the same mood — earn a 💗</p>
+
+    <div class="how-box">
+      <h3>How to play</h3>
+      <div class="step"><span class="step-num">1</span>Read the scene together 🐾</div>
+      <div class="step"><span class="step-num">2</span>Each player secretly taps a mood — no peeking! 🤫</div>
+      <div class="step"><span class="step-num">3</span>Hit Reveal — match = heart point! 💗</div>
+      <div class="step"><span class="step-num">4</span>10 rounds — see how well you know each other 🌸</div>
+    </div>
+
+    <button class="btn-play" onclick="startGame()">Let's Play! 🐻🐼</button>
+  </div>
+</div>
+
+<!-- ══ SCENE ══ -->
+<div class="screen" id="sScene">
+  <div class="topbar">
+    <div class="hearts-strip" id="hStrip"></div>
+    <div class="rpill" id="rPill">Round 1/10</div>
+  </div>
+
+  <div class="scene-card">
+    <span class="scene-emo" id="scEmo"></span>
+    <div class="scene-lbl">The Scene</div>
+    <div class="scene-txt" id="scTxt"></div>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <div class="panel-top">
+        <!-- mini bubu -->
+        <svg width="52" height="58" viewBox="0 0 90 100" fill="none">
+          <circle cx="22" cy="22" r="14" fill="#c8845a"/><circle cx="68" cy="22" r="14" fill="#c8845a"/>
+          <circle cx="22" cy="22" r="8" fill="#e8a07a"/><circle cx="68" cy="22" r="8" fill="#e8a07a"/>
+          <ellipse cx="45" cy="72" rx="30" ry="26" fill="#c8845a"/>
+          <circle cx="45" cy="45" r="32" fill="#c8845a"/>
+          <ellipse cx="45" cy="51" rx="18" ry="13" fill="#e8a07a"/>
+          <circle cx="28" cy="50" r="7" fill="#ff9999" opacity=".5"/><circle cx="62" cy="50" r="7" fill="#ff9999" opacity=".5"/>
+          <circle cx="36" cy="41" r="5" fill="#2a1a0a"/><circle cx="54" cy="41" r="5" fill="#2a1a0a"/>
+          <circle cx="37.5" cy="39.5" r="1.8" fill="white"/><circle cx="55.5" cy="39.5" r="1.8" fill="white"/>
+          <ellipse cx="45" cy="49" rx="4" ry="3" fill="#2a1a0a"/>
+          <path d="M41 54 Q45 59 49 54" stroke="#2a1a0a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <ellipse cx="45" cy="55.5" rx="3" ry="2.5" fill="#ff8fa3" opacity=".8"/>
+          <ellipse cx="45" cy="76" rx="16" ry="13" fill="#e8a07a"/>
+          <ellipse cx="15" cy="72" rx="10" ry="16" fill="#c8845a" transform="rotate(15 15 72)"/>
+          <ellipse cx="75" cy="72" rx="10" ry="16" fill="#c8845a" transform="rotate(-15 75 72)"/>
+          <ellipse cx="33" cy="94" rx="11" ry="8" fill="#c8845a"/><ellipse cx="57" cy="94" rx="11" ry="8" fill="#c8845a"/>
+        </svg>
+        <span class="panel-lbl bubu-name" style="color:var(--brown)">🌸 You</span>
+      </div>
+      <div class="moods" id="p1m"></div>
+      <div class="done-check" id="p1chk"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-top">
+        <!-- mini dudu -->
+        <svg width="52" height="58" viewBox="0 0 90 100" fill="none">
+          <circle cx="22" cy="20" r="15" fill="#2a2a2a"/><circle cx="68" cy="20" r="15" fill="#2a2a2a"/>
+          <ellipse cx="45" cy="73" rx="30" ry="25" fill="#f0ede8"/>
+          <circle cx="45" cy="45" r="32" fill="#f0ede8"/>
+          <ellipse cx="33" cy="41" rx="10" ry="9" fill="#2a2a2a"/><ellipse cx="57" cy="41" rx="10" ry="9" fill="#2a2a2a"/>
+          <ellipse cx="45" cy="52" rx="17" ry="12" fill="#e8e4de"/>
+          <circle cx="27" cy="51" r="7" fill="#ffb3c6" opacity=".6"/><circle cx="63" cy="51" r="7" fill="#ffb3c6" opacity=".6"/>
+          <circle cx="33" cy="41" r="5.5" fill="white"/><circle cx="57" cy="41" r="5.5" fill="white"/>
+          <circle cx="33" cy="42" r="3.5" fill="#1a1a1a"/><circle cx="57" cy="42" r="3.5" fill="#1a1a1a"/>
+          <circle cx="34" cy="40.5" r="1.5" fill="white"/><circle cx="58" cy="40.5" r="1.5" fill="white"/>
+          <ellipse cx="45" cy="50" rx="4" ry="3" fill="#2a2a2a"/>
+          <path d="M41 55 Q45 60 49 55" stroke="#2a2a2a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <ellipse cx="45" cy="56.5" rx="3" ry="2.5" fill="#ff8fa3" opacity=".8"/>
+          <path d="M37 65 L45 70 L53 65 L45 60 Z" fill="#2a2a2a"/><circle cx="45" cy="65" r="2.5" fill="#2a2a2a"/>
+          <ellipse cx="45" cy="76" rx="15" ry="12" fill="#e0ddd8"/>
+          <ellipse cx="14" cy="72" rx="10" ry="15" fill="#2a2a2a" transform="rotate(15 14 72)"/>
+          <ellipse cx="76" cy="72" rx="10" ry="15" fill="#2a2a2a" transform="rotate(-15 76 72)"/>
+          <ellipse cx="33" cy="94" rx="12" ry="8" fill="#2a2a2a"/><ellipse cx="57" cy="94" rx="12" ry="8" fill="#2a2a2a"/>
+        </svg>
+        <span class="panel-lbl" style="color:#555">🌙 Babe</span>
+      </div>
+      <div class="moods" id="p2m"></div>
+      <div class="done-check" id="p2chk"></div>
+    </div>
+  </div>
+
+  <button class="btn-reveal" id="btnRev" onclick="goReveal()">Reveal! 🥁</button>
+</div>
+
+<!-- ══ REVEAL ══ -->
+<div class="screen" id="sReveal">
+  <div class="topbar">
+    <div class="hearts-strip" id="hStripR"></div>
+    <div class="rpill" id="rPillR">Round 1/10</div>
+  </div>
+  <div class="mini-scene" id="miniScene"></div>
+  <div class="result-banner" id="resBanner">
+    <span class="r-icon" id="resIcon"></span>
+    <div class="r-title" id="resTitle"></div>
+    <div class="r-sub" id="resSub"></div>
+    <div class="picks">
+      <div class="pick bp"><div class="pick-who">🌸 You picked</div><div class="pick-val" id="pp1"></div></div>
+      <div class="pick dp"><div class="pick-who">🌙 Babe picked</div><div class="pick-val" id="pp2"></div></div>
+    </div>
+  </div>
+  <div class="score-box">
+    <div class="sc-item"><div class="sc-num" id="scNum">0</div><div class="sc-lbl">Hearts</div></div>
+    <div class="sc-item"><div class="sc-num" id="scLeft">10</div><div class="sc-lbl">Left</div></div>
+  </div>
+  <button class="btn-next" id="btnNext" onclick="nextRound()">Next Round →</button>
+</div>
+
+<!-- ══ FINAL ══ -->
+<div class="screen" id="sFinal">
+  <div class="final">
+    <div class="final-duo">
+      <div class="final-bear">
+        <svg width="75" height="84" viewBox="0 0 90 100" fill="none">
+          <circle cx="22" cy="22" r="14" fill="#c8845a"/><circle cx="68" cy="22" r="14" fill="#c8845a"/>
+          <circle cx="22" cy="22" r="8" fill="#e8a07a"/><circle cx="68" cy="22" r="8" fill="#e8a07a"/>
+          <ellipse cx="45" cy="72" rx="30" ry="26" fill="#c8845a"/>
+          <circle cx="45" cy="45" r="32" fill="#c8845a"/>
+          <ellipse cx="45" cy="51" rx="18" ry="13" fill="#e8a07a"/>
+          <circle cx="28" cy="50" r="7" fill="#ff9999" opacity=".5"/><circle cx="62" cy="50" r="7" fill="#ff9999" opacity=".5"/>
+          <circle cx="36" cy="41" r="5" fill="#2a1a0a"/><circle cx="54" cy="41" r="5" fill="#2a1a0a"/>
+          <circle cx="37.5" cy="39.5" r="1.8" fill="white"/><circle cx="55.5" cy="39.5" r="1.8" fill="white"/>
+          <ellipse cx="45" cy="49" rx="4" ry="3" fill="#2a1a0a"/>
+          <path d="M41 54 Q45 59 49 54" stroke="#2a1a0a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <ellipse cx="45" cy="55.5" rx="3" ry="2.5" fill="#ff8fa3" opacity=".8"/>
+          <ellipse cx="45" cy="76" rx="16" ry="13" fill="#e8a07a"/>
+          <ellipse cx="15" cy="72" rx="10" ry="16" fill="#c8845a" transform="rotate(15 15 72)"/>
+          <ellipse cx="75" cy="72" rx="10" ry="16" fill="#c8845a" transform="rotate(-15 75 72)"/>
+          <ellipse cx="33" cy="94" rx="11" ry="8" fill="#c8845a"/><ellipse cx="57" cy="94" rx="11" ry="8" fill="#c8845a"/>
+        </svg>
+      </div>
+      <div style="font-size:2rem;margin-bottom:18px">💗</div>
+      <div class="final-bear b">
+        <svg width="75" height="84" viewBox="0 0 90 100" fill="none">
+          <circle cx="22" cy="20" r="15" fill="#2a2a2a"/><circle cx="68" cy="20" r="15" fill="#2a2a2a"/>
+          <ellipse cx="45" cy="73" rx="30" ry="25" fill="#f0ede8"/>
+          <circle cx="45" cy="45" r="32" fill="#f0ede8"/>
+          <ellipse cx="33" cy="41" rx="10" ry="9" fill="#2a2a2a"/><ellipse cx="57" cy="41" rx="10" ry="9" fill="#2a2a2a"/>
+          <ellipse cx="45" cy="52" rx="17" ry="12" fill="#e8e4de"/>
+          <circle cx="27" cy="51" r="7" fill="#ffb3c6" opacity=".6"/><circle cx="63" cy="51" r="7" fill="#ffb3c6" opacity=".6"/>
+          <circle cx="33" cy="41" r="5.5" fill="white"/><circle cx="57" cy="41" r="5.5" fill="white"/>
+          <circle cx="33" cy="42" r="3.5" fill="#1a1a1a"/><circle cx="57" cy="42" r="3.5" fill="#1a1a1a"/>
+          <circle cx="34" cy="40.5" r="1.5" fill="white"/><circle cx="58" cy="40.5" r="1.5" fill="white"/>
+          <ellipse cx="45" cy="50" rx="4" ry="3" fill="#2a2a2a"/>
+          <path d="M41 55 Q45 60 49 55" stroke="#2a2a2a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <ellipse cx="45" cy="56.5" rx="3" ry="2.5" fill="#ff8fa3" opacity=".8"/>
+          <path d="M37 65 L45 70 L53 65 L45 60 Z" fill="#2a2a2a"/><circle cx="45" cy="65" r="2.5" fill="#2a2a2a"/>
+          <ellipse cx="45" cy="76" rx="15" ry="12" fill="#e0ddd8"/>
+          <ellipse cx="14" cy="72" rx="10" ry="15" fill="#2a2a2a" transform="rotate(15 14 72)"/>
+          <ellipse cx="76" cy="72" rx="10" ry="15" fill="#2a2a2a" transform="rotate(-15 76 72)"/>
+          <ellipse cx="33" cy="94" rx="12" ry="8" fill="#2a2a2a"/><ellipse cx="57" cy="94" rx="12" ry="8" fill="#2a2a2a"/>
+        </svg>
+      </div>
+    </div>
+    <div class="f-title" id="fTitle">Game Over!</div>
+    <div class="f-hearts" id="fHearts">💗💗💗</div>
+    <div class="f-score" id="fScore">0</div>
+    <div class="f-of">out of 10 hearts</div>
+    <div class="f-msg"><div class="f-msg-txt" id="fMsg"></div></div>
+    <button class="btn-replay" onclick="restartGame()">Play Again 🐾</button>
+  </div>
+</div>
+
+</div><!-- app -->
+
+<style>
+@keyframes heartFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.15)}}
+</style>
+
+<script>
+const ALL_SCENES = [
+  {e:"🍦",t:"It's hot outside. Bubu sees the last ice cream. Dudu already has one. What is Bubu's mood?",
+   m:[{e:"🥺",l:"Puppy eyes activated"},{e:"😏",l:"Has a sneaky plan"},{e:"😤",l:"Wants it NOW"},{e:"😊",l:"Happy just watching"}]},
+  {e:"🎮",t:"Dudu is losing the game for the 5th time in a row. What is Dudu's mood?",
+   m:[{e:"😤",l:"Stubborn! One more try!"},{e:"😭",l:"Dramatically upset"},{e:"😂",l:"Laughing at self"},{e:"😴",l:"About to give up"}]},
+  {e:"🌧️",t:"It's raining and they're stuck inside all day. What is Bubu's mood?",
+   m:[{e:"😊",l:"Cozy & content"},{e:"😩",l:"Bored & restless"},{e:"🥰",l:"Loving all the cuddles"},{e:"😴",l:"Full nap mode"}]},
+  {e:"🍕",t:"Dudu ate the last pizza slice while Bubu was in the bathroom. What is Bubu's mood when they return?",
+   m:[{e:"😡",l:"BETRAYED"},{e:"😂",l:"Actually finds it funny"},{e:"😒",l:"Quietly judging"},{e:"🥺",l:"So hurt, so sad"}]},
+  {e:"💌",t:"Bubu sends Dudu a surprise love note. Dudu reads it alone. What is Dudu's mood?",
+   m:[{e:"🥰",l:"Melting inside"},{e:"😳",l:"Flustered & shy"},{e:"😂",l:"Giggling from happiness"},{e:"😤",l:"Pretends not to care"}]},
+  {e:"🛍️",t:"They go shopping. Bubu tries on 11 outfits. Dudu is waiting outside. What is Dudu's mood by outfit 9?",
+   m:[{e:"😮‍💨",l:"Patiently suffering"},{e:"😴",l:"Napping on the bench"},{e:"😊",l:"Still enjoying it!"},{e:"🤣",l:"Secretly filming"}]},
+  {e:"🌅",t:"They wake up at 5:58am to watch the sunrise. What is Bubu's mood at that moment?",
+   m:[{e:"😍",l:"Already so excited"},{e:"😵",l:"Half asleep, regretting"},{e:"🥰",l:"Happy just being together"},{e:"☕",l:"Needs coffee first"}]},
+  {e:"🎂",t:"It's their anniversary. Dudu forgot to make a reservation. What is Dudu's mood when they realize?",
+   m:[{e:"😱",l:"Full panic mode"},{e:"😅",l:"Nervous laughing"},{e:"🙈",l:"Hiding from Bubu"},{e:"😇",l:"Already has a backup plan"}]},
+  {e:"🧁",t:"Bubu baked cupcakes. They look a little... odd. What is Dudu's mood seeing them?",
+   m:[{e:"🥰",l:"Loves them anyway"},{e:"😂",l:"Trying not to laugh"},{e:"😋",l:"Just wants to eat them"},{e:"😐",l:"Politely impressed"}]},
+  {e:"🐶",t:"They see an adorable puppy on the street. What is Bubu's mood?",
+   m:[{e:"🤩",l:"MUST PET IT NOW"},{e:"😭",l:"Crying happy tears"},{e:"🥺",l:"Wants to adopt immediately"},{e:"😊",l:"Just smiling warmly"}]},
+  {e:"📱",t:"Dudu has been scrolling their phone for 2 hours. Bubu is right next to them. What is Bubu's mood?",
+   m:[{e:"🙄",l:"Fed up but quiet"},{e:"🥺",l:"Just misses them"},{e:"😤",l:"About to say something"},{e:"😴",l:"Also fell asleep"}]},
+  {e:"🎤",t:"There's karaoke tonight. What is Dudu's mood when the mic is passed over?",
+   m:[{e:"🎤",l:"BORN for this moment"},{e:"😳",l:"Extremely nervous"},{e:"😂",l:"Going full drama mode"},{e:"🙈",l:"Trying to hide"}]},
+  {e:"🌃",t:"Late night, both are sleepy. Bubu wants to watch one more episode. What is Dudu's mood?",
+   m:[{e:"😴",l:"Already asleep"},{e:"🥰",l:"Will stay up for you"},{e:"😤",l:"It's 2am, no!"},{e:"😊",l:"Quietly agrees"}]},
+  {e:"🧃",t:"They share the last juice box. Bubu is drinking it very slowly. What is Dudu's mood?",
+   m:[{e:"😂",l:"Finds it adorable"},{e:"😤",l:"Just drink it already!"},{e:"🥺",l:"Worried there's not enough"},{e:"😊",l:"Patiently waiting"}]},
+  {e:"💤",t:"It's Sunday morning. What is Bubu's ideal mood right now?",
+   m:[{e:"😴",l:"Still deep asleep"},{e:"☀️",l:"Up early and energetic"},{e:"🥰",l:"Cuddling, going nowhere"},{e:"🍳",l:"Making breakfast for both"}]},
+  {e:"🌸",t:"Dudu picks a flower and gives it to Bubu out of nowhere. What is Bubu's mood?",
+   m:[{e:"🥹",l:"Emotional, might cry"},{e:"🥰",l:"Instantly glowing"},{e:"😂",l:"Laughing from surprise"},{e:"😳",l:"Flustered but happy"}]},
+  {e:"🚗",t:"They're lost on a road trip. GPS is down. What is Dudu's mood?",
+   m:[{e:"😤",l:"Very frustrated"},{e:"😂",l:"Treating it as an adventure"},{e:"🥺",l:"Quietly stressed"},{e:"😊",l:"Trusts Bubu to figure it out"}]},
+  {e:"🧸",t:"Bubu is sulking in a corner about something small. What is Dudu's mood?",
+   m:[{e:"🥺",l:"Going over to hug immediately"},{e:"😂",l:"Finds it adorably funny"},{e:"🙄",l:"Waiting it out"},{e:"😤",l:"Also a little grumpy now"}]},
+  {e:"🎁",t:"It's gift-wrapping time. The wrapping looks... creative. What is Bubu's mood?",
+   m:[{e:"😤",l:"This is fine. Totally fine."},{e:"😂",l:"Knows it looks terrible"},{e:"🥰",l:"Made with love!"},{e:"😴",l:"Too tired to care"}]},
+  {e:"🌙",t:"Dudu says 'I love you' out of nowhere before sleep. What is Bubu's mood?",
+   m:[{e:"🥹",l:"Heart completely full"},{e:"😳",l:"Flustered and speechless"},{e:"🥰",l:"Whispers it back softly"},{e:"😂",l:"Laughs from pure joy"}]},
+];
+
+const TOTAL = 10;
+let round = 0, score = 0, order = [], p1 = null, p2 = null;
+
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+
+function startGame(){
+  round=0;score=0;p1=null;p2=null;
+  order=shuffle(ALL_SCENES.map((_,i)=>i)).slice(0,TOTAL);
+  show('sScene');loadRound();
+}
+
+function loadRound(){
+  p1=null;p2=null;
+  const sc=ALL_SCENES[order[round]];
+  document.getElementById('scEmo').textContent=sc.e;
+  document.getElementById('scTxt').textContent=sc.t;
+  document.getElementById('rPill').textContent=`Round ${round+1}/${TOTAL}`;
+  updateHearts('hStrip');
+  ['p1m','p2m'].forEach((id,pi)=>{
+    const c=document.getElementById(id);c.innerHTML='';
+    sc.m.forEach((m,mi)=>{
+      const b=document.createElement('button');
+      b.className='mbtn';
+      b.innerHTML=`<span class="me">${m.e}</span>${m.l}`;
+      b.onclick=()=>pick(pi+1,mi,m);
+      c.appendChild(b);
+    });
+  });
+  document.getElementById('p1chk').textContent='';
+  document.getElementById('p2chk').textContent='';
+  document.getElementById('btnRev').classList.remove('rdy');
+}
+
+function pick(player,idx,mood){
+  const id=player===1?'p1m':'p2m';
+  document.getElementById(id).querySelectorAll('.mbtn').forEach((b,i)=>{
+    b.classList.remove('sel-b','sel-d');
+    if(i===idx)b.classList.add(player===1?'sel-b':'sel-d');
+  });
+  if(player===1){p1={idx,mood};document.getElementById('p1chk').textContent='✅'}
+  else{p2={idx,mood};document.getElementById('p2chk').textContent='✅'}
+  if(p1&&p2)document.getElementById('btnRev').classList.add('rdy');
+}
+
+function goReveal(){
+  const sc=ALL_SCENES[order[round]];
+  const match=p1.idx===p2.idx;
+  if(match){score++;confetti();}
+  document.getElementById('rPillR').textContent=`Round ${round+1}/${TOTAL}`;
+  updateHearts('hStripR');
+  document.getElementById('miniScene').textContent=sc.e+'  '+sc.t;
+  const b=document.getElementById('resBanner');
+  b.className='result-banner '+(match?'match':'nomatch');
+  document.getElementById('resIcon').textContent=match?'💗':'🐾';
+  document.getElementById('resTitle').textContent=match?'You matched!':'So close!';
+  const ms=['Bear soulmates! 🌸','Totally in sync! 💕','You really get each other! 🥰','Perfect pair! 🐻🐼'];
+  const nm=['Different vibes, same love! 🌿','That surprise keeps it fun! 🍡','Next one is yours! 🌸','Two bears, endless love! 💝'];
+  document.getElementById('resSub').textContent=match?ms[Math.floor(Math.random()*ms.length)]:nm[Math.floor(Math.random()*nm.length)];
+  document.getElementById('pp1').textContent=p1.mood.e+' '+p1.mood.l;
+  document.getElementById('pp2').textContent=p2.mood.e+' '+p2.mood.l;
+  document.getElementById('scNum').textContent=score;
+  document.getElementById('scLeft').textContent=TOTAL-(round+1);
+  document.getElementById('btnNext').textContent=round===TOTAL-1?'See Results 🎉':'Next Round →';
+  show('sReveal');
+}
+
+function nextRound(){
+  round++;
+  if(round>=TOTAL)showFinal();
+  else{show('sScene');loadRound();}
+}
+
+function showFinal(){
+  const p=score/TOTAL;
+  let title,msg;
+  if(p===1){title='Perfect Match! 💗';msg='All 10 rounds matched! You two literally share one brain and one heart. Bubu and Dudu are SO proud of you! 🌸✨'}
+  else if(p>=.8){title='Almost Perfect! 🥰';msg='So incredibly in sync! Just a tiny surprise here and there — that\'s what keeps love interesting! 🐻🐼'}
+  else if(p>=.6){title='Bear Soulmates! 🌸';msg='You know each other so deeply! A few surprises make every round exciting. You two are perfectly imperfect! 💕'}
+  else if(p>=.4){title='Learning Together! 🍡';msg='Every mismatch is a fun discovery! You\'re still learning each other\'s hearts — and that\'s the best part of love! 🌿'}
+  else{title='Wild Cards! 😂';msg='You surprised each other every single round! Opposites really do attract — and you two are never ever boring! 🎉'}
+  document.getElementById('fTitle').textContent=title;
+  document.getElementById('fScore').textContent=score;
+  document.getElementById('fMsg').textContent=msg;
+  let h='';for(let i=0;i<TOTAL;i++)h+=i<score?'💗':'🤍';
+  document.getElementById('fHearts').textContent=h;
+  if(p>=.6)confetti();
+  show('sFinal');
+}
+
+function restartGame(){startGame();}
+
+function updateHearts(id){
+  const r=document.getElementById(id);r.innerHTML='';
+  for(let i=0;i<TOTAL;i++){
+    const s=document.createElement('span');
+    s.className='h-icon'+(i<score?' lit':'');
+    s.textContent=i<score?'💗':'🤍';
+    r.appendChild(s);
+  }
+}
+
+function confetti(){
+  const w=document.getElementById('cw');
+  const cols=['#ff8fab','#ffc13b','#c8845a','#b5ead7','#b5d5ff','#f5c0d0','#ffeaa7'];
+  for(let i=0;i<55;i++){
+    const p=document.createElement('div');p.className='cp';
+    p.style.cssText=`left:${Math.random()*100}vw;top:${Math.random()*25}vh;background:${cols[Math.floor(Math.random()*cols.length)]};width:${6+Math.random()*9}px;height:${6+Math.random()*9}px;border-radius:${Math.random()>.5?'50%':'3px'};animation-delay:${Math.random()*.5}s;animation-duration:${.9+Math.random()*.7}s`;
+    w.appendChild(p);setTimeout(()=>p.remove(),1800);
+  }
+}
+</script>
+</body>
+</html>
